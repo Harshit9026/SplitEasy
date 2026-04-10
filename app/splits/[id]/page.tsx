@@ -546,15 +546,15 @@ export default function SplitDetailPage() {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link
-            href="/splits"
-            className="flex items-center gap-2 text-lg font-bold hover:opacity-80 transition-opacity"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              SplitEasy
-            </span>
-          </Link>
+         <Link
+  href={isOwner ? "/splits" : `/auth?returnUrl=/splits/${splitId}`}
+  className="flex items-center gap-2 text-lg font-bold hover:opacity-80 transition-opacity"
+>
+  <ArrowLeft className="h-5 w-5" />
+  <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+    SplitEasy
+  </span>
+</Link>
         </div>
       </nav>
 

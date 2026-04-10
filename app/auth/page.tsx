@@ -1,19 +1,24 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, ArrowLeft, Loader2 } from 'lucide-react';
 
-export default function AuthPage() {
+function AuthForm() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Grab returnUrl from query params e.g. /auth?returnUrl=/splits/abc123
+  const returnUrl = searchParams.get('returnUrl') || '/splits';
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +30,8 @@ export default function AuthPage() {
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // Pass returnUrl through to the callback so user lands back on the split
+          emailRedirectTo: `${window.location.origin}/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`,
         },
       });
 
@@ -128,7 +134,8 @@ export default function AuthPage() {
                       Check your email
                     </h2>
                     <p className="text-muted-foreground">
-                      We&apos;ve sent a magic link to <span className="font-semibold text-foreground">{email}</span>
+                      We&apos;ve sent a magic link to{' '}
+                      <span className="font-semibold text-foreground">{email}</span>
                     </p>
                   </div>
                   <p className="text-sm text-muted-foreground pt-4">
@@ -160,5 +167,17 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    }>
+      <AuthForm />
+    </Suspense>
   );
 }
