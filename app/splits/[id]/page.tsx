@@ -419,16 +419,27 @@ export default function SplitDetailPage() {
   init();
 }, [splitId]);
 
-  const loadSplit = async (userId?: string) => {
+ const loadSplit = async (userId?: string) => {
   try {
     const { split: splitData, members: membersData } =
       await getSplitWithMembers(splitId);
     setSplit(splitData);
     setMembers(membersData);
-    
-    // Check if current user is the creator
-    if (userId && splitData.created_by === userId) {
-      setIsOwner(true);
+
+    if (userId) {
+      // Check if creator
+      if (splitData.created_by === userId) {
+        setIsOwner(true);
+      } else {
+        // Auto-claim: link this user to their member row
+        // so it shows up on their splits page
+        const supabase = createClient();
+        await supabase
+          .from('split_members')
+          .update({ user_id: userId })
+          .eq('split_id', splitId)
+          .is('user_id', null); // only unclaimed rows
+      }
     }
   } catch (error) {
     console.error('Failed to load split:', error);
