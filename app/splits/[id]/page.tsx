@@ -475,24 +475,24 @@ export default function SplitDetailPage() {
   //   }
   // };
 
-  const handlePaymentStatusChange = async (memberId: string, paid: boolean) => {
-  if (!memberId) {
-    console.error("Invalid memberId");
-    return;
-  }
-
+ const handlePaymentStatusChange = async (memberId: string, paid: boolean) => {
   setUpdating(memberId);
-
   try {
     await updateMemberPaymentStatus(memberId, paid);
 
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === memberId ? { ...m, paid } : m
-      )
+    const updatedMembers = members.map(m =>
+      m.id === memberId ? { ...m, paid, paid_at: paid ? new Date().toISOString() : undefined } : m
     );
+    setMembers(updatedMembers);
+
+    // Check if all paid and update local split status too
+    const allPaid = updatedMembers.every(m => m.paid);
+    if (split) {
+      setSplit({ ...split, status: allPaid ? 'completed' : 'pending' });
+    }
+
   } catch (error) {
-    console.error("Failed to update payment status:", error);
+    console.error('Failed to update payment status:', error);
   } finally {
     setUpdating(null);
   }

@@ -42,24 +42,25 @@ export default function SplitsPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
 
-  useEffect(() => {
-    const init = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push('/auth'); return; }
+ useEffect(() => {
+  const init = async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.push('/auth'); return; }
 
-      // Load splits I created
-      const created = await getUserSplits();
-      setMySplits(created || []);
+    setLoading(true); 
 
-      // Load splits I am a member of
-      const member = await getMemberSplits();
-      setMemberSplits(member || []);
+    const [created, member] = await Promise.all([
+      getUserSplits(),
+      getMemberSplits(),
+    ]);
 
-      setLoading(false);
-    };
-    init();
-  }, [router]);
+    setMySplits(created || []);
+    setMemberSplits(member || []);
+    setLoading(false);
+  };
+  init();
+}, [router]); 
 
   const filterSplits = (splits: Split[]) =>
     splits.filter(s => {
