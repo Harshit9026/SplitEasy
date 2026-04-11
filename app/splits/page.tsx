@@ -41,6 +41,7 @@ export default function SplitsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | '7days' | 'month' | '3months'>('all');
 
  useEffect(() => {
   const init = async () => {
@@ -62,12 +63,25 @@ export default function SplitsPage() {
   init();
 }, [router]); 
 
-  const filterSplits = (splits: Split[]) =>
-    splits.filter(s => {
-      const matchSearch = s.title.toLowerCase().includes(search.toLowerCase());
-      const matchFilter = filter === 'all' ? true : s.status === filter;
-      return matchSearch && matchFilter;
-    });
+const filterByDate = (splits: Split[]) => {
+  if (dateFilter === 'all') return splits;
+  
+  const now = new Date();
+  const cutoff = new Date();
+  
+  if (dateFilter === '7days') cutoff.setDate(now.getDate() - 7);
+  else if (dateFilter === 'month') cutoff.setMonth(now.getMonth() - 1);
+  else if (dateFilter === '3months') cutoff.setMonth(now.getMonth() - 3);
+  
+  return splits.filter(s => new Date(s.created_at) >= cutoff);
+};
+
+ const filterSplits = (splits: Split[]) =>
+  filterByDate(splits).filter(s => {
+    const matchSearch = s.title.toLowerCase().includes(search.toLowerCase());
+    const matchFilter = filter === 'all' ? true : s.status === filter;
+    return matchSearch && matchFilter;
+  });
 
   const SplitCard = ({ split, isMember = false }: { split: Split, isMember?: boolean }) => (
     <Link href={`/splits/${split.id}`}>
@@ -190,6 +204,25 @@ export default function SplitsPage() {
               </button>
             ))}
           </div>
+          <div className="flex gap-2 flex-wrap">
+  {[
+    { key: 'all', label: 'All time' },
+    { key: '7days', label: 'Last 7 days' },
+    { key: 'month', label: 'This month' },
+    { key: '3months', label: 'Last 3 months' },
+  ].map(d => (
+    <button
+      key={d.key}
+      onClick={() => setDateFilter(d.key as any)}
+      className={`px-4 py-1.5 rounded-lg text-sm border transition-colors
+        ${dateFilter === d.key
+          ? 'bg-primary text-white border-primary'
+          : 'bg-card border-border text-muted-foreground hover:border-primary/50'}`}
+    >
+      {d.label}
+    </button>
+  ))}
+</div>
         </div>
 
         {/* Empty state */}

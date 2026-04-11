@@ -27,6 +27,7 @@ export default function SettleUpPage() {
   const [balances, setBalances] = useState<NetBalance[]>([]);
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [settled, setSettled] = useState<string[]>([]);
+  const [dateFilter, setDateFilter] = useState<'all' | '7days' | 'month' | '3months'>('all');
 
   useEffect(() => {
     const init = async () => {
@@ -70,6 +71,9 @@ export default function SettleUpPage() {
 
       for (const split of uniqueSplits) {
         if (!split) continue;
+        // Filter by date
+const cutoff = getDateCutoff();
+if (cutoff && split.created_at && new Date(split.created_at) < cutoff) continue;
         const members = split.split_members || [];
         const hostUpi = split.upi_id || split.host_upi_id || '';
 
@@ -141,7 +145,16 @@ export default function SettleUpPage() {
     };
 
     init();
-  }, [router]);
+  }, [router,dateFilter]);
+
+  const getDateCutoff = () => {
+  const cutoff = new Date();
+  if (dateFilter === '7days') cutoff.setDate(cutoff.getDate() - 7);
+  else if (dateFilter === 'month') cutoff.setMonth(cutoff.getMonth() - 1);
+  else if (dateFilter === '3months') cutoff.setMonth(cutoff.getMonth() - 3);
+  else return null;
+  return cutoff;
+};
 
   const handlePay = (settlement: Settlement) => {
     if (!settlement.toUpiId) return;
@@ -175,6 +188,26 @@ export default function SettleUpPage() {
           </span>
         </div>
       </nav>
+
+      <div className="flex gap-2 flex-wrap mb-6">
+  {[
+    { key: 'all', label: 'All time' },
+    { key: '7days', label: 'Last 7 days' },
+    { key: 'month', label: 'This month' },
+    { key: '3months', label: 'Last 3 months' },
+  ].map(d => (
+    <button
+      key={d.key}
+      onClick={() => setDateFilter(d.key as any)}
+      className={`px-4 py-1.5 rounded-lg text-sm border transition-colors
+        ${dateFilter === d.key
+          ? 'bg-primary text-white border-primary'
+          : 'bg-card border-border text-muted-foreground hover:border-primary/50'}`}
+    >
+      {d.label}
+    </button>
+  ))}
+</div>
 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
