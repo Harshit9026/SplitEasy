@@ -129,11 +129,18 @@ export default function SplitsPage() {
           <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             SplitEasy
           </span>
-          <Link href="/create">
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-1" /> New Split
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+  <Link href="/settle">
+    <Button size="sm" variant="outline">
+      Settle Up
+    </Button>
+  </Link>
+  <Link href="/create">
+    <Button size="sm">
+      <Plus className="h-4 w-4 mr-1" /> New Split
+    </Button>
+  </Link>
+</div>
         </div>
       </nav>
 
