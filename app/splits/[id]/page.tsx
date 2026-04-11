@@ -424,8 +424,9 @@ export default function SplitDetailPage() {
     const { split: splitData, members: membersData } =
       await getSplitWithMembers(splitId);
     setSplit(splitData);
-    setMembers(membersData);
-
+setMembers(membersData);
+if (splitData.upi_id) setHostUpiId(splitData.upi_id);        
+if (splitData.host_upi_id) setHostUpiId(splitData.host_upi_id); 
     if (userId) {
       // Check if creator
       if (splitData.created_by === userId) {
