@@ -24,11 +24,11 @@ export interface SplitMember {
 export async function createSplit(
   title: string,
   total_amount: number,
-  description?: string
+  description?: string,
+  upi_id?: string
 ) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   if (!user) throw new Error('User not authenticated');
 
   const { data, error } = await supabase
@@ -38,6 +38,7 @@ export async function createSplit(
       title,
       total_amount,
       status: 'pending',
+      upi_id: upi_id || null,
     })
     .select()
     .single();

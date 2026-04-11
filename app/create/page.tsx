@@ -14,6 +14,7 @@ export default function CreateSplitPage() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [userLoaded, setUserLoaded] = useState(false);
+  const [hostUpiId, setHostUpiId] = useState('');
 
   // Step 1: Split Details
   const [title, setTitle] = useState('');
@@ -55,7 +56,7 @@ export default function CreateSplitPage() {
       setError('');
 
       try {
-        const split = await createSplit(title, parseFloat(totalAmount), description);
+        const split = await createSplit(title, parseFloat(totalAmount), description, hostUpiId);
         setSplitId(split.id);
         setStep(2);
       } catch (err) {
@@ -192,6 +193,18 @@ export default function CreateSplitPage() {
                       className="text-base"
                     />
                   </div>
+
+                  <div className="space-y-2">
+  <label className="text-sm font-medium text-foreground">
+    Your UPI ID *
+  </label>
+  <Input
+    placeholder="yourname@upi"
+    value={hostUpiId}
+    onChange={(e) => setHostUpiId(e.target.value)}
+    className="text-base"
+  />
+</div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground">
