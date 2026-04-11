@@ -144,6 +144,11 @@ const filterByDate = (splits: Split[]) => {
             SplitEasy
           </span>
           <div className="flex gap-2">
+  <Link href="/groups">
+    <Button size="sm" variant="outline">
+      Groups
+    </Button>
+  </Link>
   <Link href="/settle">
     <Button size="sm" variant="outline">
       Settle Up
