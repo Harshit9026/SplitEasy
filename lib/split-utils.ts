@@ -89,7 +89,8 @@ export async function getSplitWithMembers(splitId: string) {
 export async function addSplitMember(
   splitId: string,
   phoneNumber: string,
-  amount: number
+  amount: number,
+  email?: string
 ) {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -98,6 +99,7 @@ export async function addSplitMember(
       split_id: splitId,
       phone_number: phoneNumber,
       amount,
+      email: email || null,
     })
     .select()
     .single();
@@ -114,7 +116,10 @@ export async function updateMemberPaymentStatus(
   const supabase = createClient();
   const { data, error } = await supabase
     .from('split_members')
-    .update({ paid })
+    .update({
+      paid,
+      paid_at: paid ? new Date().toISOString() : null,
+    })
     .eq('id', memberId)
     .select()
     .single();

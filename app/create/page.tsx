@@ -21,9 +21,9 @@ export default function CreateSplitPage() {
   const [description, setDescription] = useState('');
 
   // Step 2: Add Members
-  const [members, setMembers] = useState<Array<{ name: string; phone: string; amount: string }>>([
-    { name: '', phone: '', amount: '' },
-  ]);
+  const [members, setMembers] = useState<Array<{ name: string; phone: string; amount: string; email: string }>>([
+  { name: '', phone: '', amount: '', email: '' },
+]);
 
   const [splitId, setSplitId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -67,7 +67,7 @@ export default function CreateSplitPage() {
   };
 
   const handleAddMember = () => {
-    setMembers([...members, { name: '', phone: '', amount: '' }]);
+    setMembers([...members, { name: '', phone: '', amount: '', email: '' }]);
   };
 
   const handleRemoveMember = (index: number) => {
@@ -95,7 +95,7 @@ export default function CreateSplitPage() {
 
     try {
       for (const member of validMembers) {
-        await addSplitMember(splitId, member.phone, parseFloat(member.amount));
+        await addSplitMember(splitId, member.phone, parseFloat(member.amount), member.email);
       }
 
       // Redirect to split details
@@ -281,6 +281,19 @@ export default function CreateSplitPage() {
                           className="mt-1"
                         />
                       </div>
+                      <div className="flex-1">
+  <label className="text-xs font-medium text-foreground">
+    Email
+  </label>
+  <Input
+    placeholder="friend@gmail.com"
+    value={member.email}
+    onChange={(e) =>
+      handleMemberChange(index, 'email', e.target.value)
+    }
+    className="mt-1"
+  />
+</div>
                       <div className="flex-1">
                         <label className="text-xs font-medium text-foreground">
                           Amount (₹)
