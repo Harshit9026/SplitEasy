@@ -11,15 +11,24 @@ export const metadata: Metadata = {
   title: 'SplitEasy',
   description: 'Created By Harshit Shukla',
   generator: '',
-  icons: {
+    // icon: [
+    //   { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
+    //   { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
+    //   { url: '/icon.svg', type: 'image/svg+xml' },
+    // ],
+    // apple: '',
+    icons: {
     icon: [
-      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: "/spliteasy.png", sizes: "32x32", type: "image/png" },
+      { url: "/spliteasy.png", sizes: "16x16", type: "image/png" },
     ],
-    apple: '/apple-icon.png',
-  },
-}
+    apple: [
+      { url: "/spliteasy.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: ["/spliteasy.png"],
+  }, // iPhone home screen
+
+};
 
 export default function RootLayout({
   children,
