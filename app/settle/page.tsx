@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { generateUPILink } from '@/lib/split-utils';
@@ -24,7 +24,7 @@ interface Balance {
   upiId: string;
 }
 
-export default function SettleUpPage() {
+function SettleUpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const groupId = searchParams.get('group');
@@ -47,7 +47,6 @@ export default function SettleUpPage() {
       let memberPhones: string[] = [];
       let memberNames: Record<string, string> = {};
 
-      // If group selected, get group members
       if (groupId) {
         const { data: group } = await supabase
           .from('groups')
@@ -64,13 +63,11 @@ export default function SettleUpPage() {
         }
       }
 
-      // Date cutoff
       let cutoff: Date | null = null;
       if (dateFilter === '7days') { cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 7); }
       else if (dateFilter === 'month') { cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - 1); }
       else if (dateFilter === '3months') { cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - 3); }
 
-      // Fetch all splits
       let splitsQuery = supabase
         .from('splits')
         .select(`
@@ -84,7 +81,6 @@ export default function SettleUpPage() {
 
       if (!allSplits) { setLoading(false); return; }
 
-      // Filter splits to only those involving group members
       const relevantSplits = groupId
         ? allSplits.filter(split => {
             const phones = split.split_members?.map((m: any) => m.phone_number) || [];
@@ -92,7 +88,6 @@ export default function SettleUpPage() {
           })
         : allSplits;
 
-      // Build net balance map
       const netMap: Record<string, { net: number; upiId: string; name: string }> = {};
 
       const ensureKey = (phone: string, upiId = '', name = '') => {
@@ -111,11 +106,9 @@ export default function SettleUpPage() {
 
         for (const member of members) {
           if (!member.paid) {
-            // Member owes → negative
             ensureKey(member.phone_number);
             netMap[member.phone_number].net -= member.amount;
 
-            // Host gets paid → positive
             const hostKey = hostUpi || `host_${split.created_by}`;
             ensureKey(hostKey, hostUpi);
             netMap[hostKey].net += member.amount;
@@ -133,7 +126,6 @@ export default function SettleUpPage() {
 
       setBalances(balanceList);
 
-      // Calculate minimum settlements
       const creditors = balanceList
         .filter(b => b.net > 0.01)
         .map(b => ({ ...b, amount: b.net }));
@@ -191,7 +183,6 @@ export default function SettleUpPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
-        {/* Date filters */}
         <div className="flex gap-2 flex-wrap">
           {[
             { key: 'all', label: 'All time' },
@@ -218,7 +209,6 @@ export default function SettleUpPage() {
           </div>
         ) : (
           <>
-            {/* Net Balances */}
             <div className="space-y-3">
               <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Net balances
@@ -248,7 +238,6 @@ export default function SettleUpPage() {
               )}
             </div>
 
-            {/* Settlements */}
             <div className="space-y-3">
               <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Minimum transactions to settle
@@ -326,5 +315,17 @@ export default function SettleUpPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SettleUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <SettleUpContent />
+    </Suspense>
   );
 }
