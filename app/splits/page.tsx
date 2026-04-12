@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Plus, ArrowRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
+
 interface Split {
   id: string;
   title: string;
@@ -42,6 +43,7 @@ export default function SplitsPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [dateFilter, setDateFilter] = useState<'all' | '7days' | 'month' | '3months'>('all');
+
 
  useEffect(() => {
   const init = async () => {
@@ -138,30 +140,28 @@ const filterByDate = (splits: Split[]) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            SplitEasy
-          </span>
-          <div className="flex gap-2">
-  <Link href="/groups">
-    <Button size="sm" variant="outline">
-      Groups
-    </Button>
-  </Link>
-  <Link href="/settle">
-    <Button size="sm" variant="outline">
-      Settle Up
-    </Button>
-  </Link>
-  <Link href="/create">
-    <Button size="sm">
-      <Plus className="h-4 w-4 mr-1" /> New Split
-    </Button>
-  </Link>
-</div>
-        </div>
-      </nav>
+     <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
+  <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+    <Link href="/">
+      <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        SplitEasy
+      </span>
+    </Link>
+    <div className="flex gap-2">
+      <Link href="/groups">
+        <Button size="sm" variant="outline">Groups</Button>
+      </Link>
+      <Link href="/settle">
+        <Button size="sm" variant="outline">Settle Up</Button>
+      </Link>
+      <Link href="/create">
+        <Button size="sm">
+          <Plus className="h-4 w-4 mr-1" /> New Split
+        </Button>
+      </Link>
+    </div>
+  </div>
+</nav>
 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 

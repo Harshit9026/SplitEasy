@@ -405,6 +405,7 @@ export default function SplitDetailPage() {
   const [hostUpiId, setHostUpiId] = useState('');
   const [editingUpi, setEditingUpi] = useState(false);
   const [qrMember, setQrMember] = useState<SplitMember | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
   const init = async () => {
@@ -548,6 +549,20 @@ if (splitData.host_upi_id) setHostUpiId(splitData.host_upi_id);
     );
   }
 
+  const handleDeleteSplit = async () => {
+  if (!confirm('Delete this split? This cannot be undone.')) return;
+  setDeleting(true);
+  try {
+    const supabase = createClient();
+    await supabase.from('split_members').delete().eq('split_id', splitId);
+    await supabase.from('splits').delete().eq('id', splitId);
+    router.push('/splits');
+  } catch (error) {
+    console.error('Failed to delete split:', error);
+    setDeleting(false);
+  }
+};
+
   const paidMembers = members.filter((m) => m.paid).length;
   const totalMembers = members.length;
   const progress = totalMembers ? (paidMembers / totalMembers) * 100 : 0;
@@ -556,19 +571,40 @@ if (splitData.host_upi_id) setHostUpiId(splitData.host_upi_id);
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-         <Link
-  href={isOwner ? "/splits" : `/auth?returnUrl=/splits/${splitId}`}
-  className="flex items-center gap-2 text-lg font-bold hover:opacity-80 transition-opacity"
->
-  <ArrowLeft className="h-5 w-5" />
-  <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-    SplitEasy
-  </span>
-</Link>
-        </div>
-      </nav>
+     <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
+  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+    <Link
+      href="/splits"
+      className="flex items-center gap-2 text-lg font-bold hover:opacity-80 transition-opacity"
+    >
+      <ArrowLeft className="h-5 w-5" />
+      <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        SplitEasy
+      </span>
+    </Link>
+    <div className="flex items-center gap-2">
+      <Link href="/">
+        <Button size="sm" variant="outline">
+          Home
+        </Button>
+      </Link>
+      {isOwner && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleDeleteSplit}
+          disabled={deleting}
+          className="text-red-500 border-red-200 hover:bg-red-50"
+        >
+          {deleting
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : 'Delete Split'
+          }
+        </Button>
+      )}
+    </div>
+  </div>
+</nav>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header Card */}
