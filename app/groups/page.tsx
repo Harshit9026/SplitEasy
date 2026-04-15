@@ -5,9 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Loader2, Plus, Trash2, ArrowRight, Users, X
-} from 'lucide-react';
+import { Loader2, Plus, Trash2, Users, X, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface GroupMember {
@@ -78,19 +76,14 @@ export default function GroupsPage() {
     if (!groupName.trim()) return;
     const validMembers = members.filter(m => m.name.trim() && m.phone.trim());
     if (validMembers.length === 0) return;
-
     setSaving(true);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-
     const { data: group, error } = await supabase
       .from('groups')
       .insert({ name: groupName.trim(), created_by: user?.id })
-      .select()
-      .single();
-
+      .select().single();
     if (error || !group) { setSaving(false); return; }
-
     await supabase.from('group_members').insert(
       validMembers.map(m => ({
         group_id: group.id,
@@ -99,7 +92,6 @@ export default function GroupsPage() {
         email: m.email.trim() || null,
       }))
     );
-
     setGroupName('');
     setMembers([{ name: '', phone: '', email: '' }]);
     setShowForm(false);
@@ -123,9 +115,11 @@ export default function GroupsPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Groups
-          </span>
+          <Link href="/">
+            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Groups
+            </span>
+          </Link>
           <Button size="sm" onClick={() => setShowForm(true)}>
             <Plus className="h-4 w-4 mr-1" /> New Group
           </Button>
@@ -134,7 +128,6 @@ export default function GroupsPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
 
-        {/* Create Group Form */}
         {showForm && (
           <div className="bg-card border border-primary/30 rounded-2xl p-6 space-y-5">
             <div className="flex items-center justify-between">
@@ -143,38 +136,25 @@ export default function GroupsPage() {
                 <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
-
             <Input
               placeholder="Group name e.g. Auto Gang, Office Lunch"
               value={groupName}
               onChange={e => setGroupName(e.target.value)}
             />
-
             <div className="space-y-3">
               <p className="text-sm font-medium text-foreground">Members</p>
               {members.map((member, index) => (
                 <div key={index} className="grid grid-cols-3 gap-2 items-center">
-                  <Input
-                    placeholder="Name"
-                    value={member.name}
-                    onChange={e => handleMemberChange(index, 'name', e.target.value)}
-                  />
-                  <Input
-                    placeholder="Phone"
-                    value={member.phone}
-                    onChange={e => handleMemberChange(index, 'phone', e.target.value)}
-                  />
+                  <Input placeholder="Name" value={member.name}
+                    onChange={e => handleMemberChange(index, 'name', e.target.value)} />
+                  <Input placeholder="Phone" value={member.phone}
+                    onChange={e => handleMemberChange(index, 'phone', e.target.value)} />
                   <div className="flex gap-2">
-                    <Input
-                      placeholder="Email"
-                      value={member.email}
-                      onChange={e => handleMemberChange(index, 'email', e.target.value)}
-                    />
+                    <Input placeholder="Email" value={member.email}
+                      onChange={e => handleMemberChange(index, 'email', e.target.value)} />
                     {members.length > 1 && (
-                      <button
-                        onClick={() => handleRemoveMember(index)}
-                        className="text-muted-foreground hover:text-red-500"
-                      >
+                      <button onClick={() => handleRemoveMember(index)}
+                        className="text-muted-foreground hover:text-red-500">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     )}
@@ -185,7 +165,6 @@ export default function GroupsPage() {
                 <Plus className="h-4 w-4 mr-1" /> Add Member
               </Button>
             </div>
-
             <div className="flex gap-3">
               <Button onClick={handleSave} disabled={saving} className="flex-1">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Group'}
@@ -197,65 +176,50 @@ export default function GroupsPage() {
           </div>
         )}
 
-        {/* Groups List */}
         {groups.length === 0 && !showForm ? (
           <div className="text-center py-20 space-y-4">
             <p className="text-5xl">👥</p>
             <p className="text-xl font-semibold text-foreground">No groups yet</p>
-            <p className="text-muted-foreground">
-              Create a group for your auto gang, office lunch crew, or roommates
-            </p>
+            <p className="text-muted-foreground">Create a group for your auto gang or office crew</p>
             <Button onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4 mr-1" /> Create your first group
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {groups.map(group => (
-              <div
-                key={group.id}
-                className="bg-card border border-border rounded-2xl p-5 space-y-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{group.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {group.group_members?.length || 0} members
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Link href={`/settle?group=${group.id}`}>
-                      <Button size="sm" variant="outline">
-                        Settle Up
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(group.id)}
-                      className="text-muted-foreground hover:text-red-500"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Members avatars */}
-                <div className="flex gap-2 flex-wrap">
-                  {group.group_members?.map((m, i) => (
-                    <div key={i} className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1">
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}>
-                        {m.name[0]?.toUpperCase()}
+              <Link key={group.id} href={`/groups/${group.id}`}>
+                <div className="bg-card border border-border rounded-2xl p-5 hover:border-primary/40 transition-all cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Group avatar stack */}
+                      <div className="flex -space-x-2">
+                        {group.group_members?.slice(0, 4).map((m, i) => (
+                          <div key={i}
+                            className={`w-9 h-9 rounded-full border-2 border-background flex items-center justify-center text-white font-bold text-sm ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}>
+                            {m.name[0]?.toUpperCase()}
+                          </div>
+                        ))}
                       </div>
-                      <span className="text-xs text-foreground">{m.name}</span>
+                      <div>
+                        <p className="font-semibold text-foreground">{group.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {group.group_members?.length || 0} members
+                        </p>
+                      </div>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={e => { e.preventDefault(); handleDelete(group.id); }}
+                        className="text-muted-foreground hover:text-red-500 p-1"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
