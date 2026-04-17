@@ -114,16 +114,19 @@ const filterByDate = (splits: Split[]) => {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <span className={`text-xs px-2 py-1 rounded-full border flex items-center gap-1 ${getStatusBadge(split.status)}`}>
-            {getStatusIcon(split.status)}
-            {split.status}
-          </span>
-          <p className="text-lg font-bold text-primary">
-            ₹{split.total_amount.toLocaleString()}
-          </p>
-          <ArrowRight className="h-4 w-4 text-muted-foreground" />
-        </div>
+      
+<div className="flex items-center gap-2 flex-shrink-0">
+  <div className="flex flex-col items-end gap-1">
+    <span className={`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 ${getStatusBadge(split.status)}`}>
+      {getStatusIcon(split.status)}
+      <span className="hidden sm:inline">{split.status}</span>
+    </span>
+    <p className="text-base sm:text-lg font-bold text-primary">
+      ₹{split.total_amount.toLocaleString()}
+    </p>
+  </div>
+  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+</div>
       </div>
     </Link>
   );
@@ -147,49 +150,47 @@ const filterByDate = (splits: Split[]) => {
         SplitEasy
       </span>
     </Link>
-    <div className="flex gap-2">
-      <Link href="/groups">
-        <Button size="sm" variant="outline">Groups</Button>
-      </Link>
-      <Link href="/settle">
-        <Button size="sm" variant="outline">Settle Up</Button>
-      </Link>
-      <Link href="/create">
-        <Button size="sm">
-          <Plus className="h-4 w-4 mr-1" /> New Split
-        </Button>
-      </Link>
-      <Link href="/profile">
-  <Button size="sm" variant="outline">
-    My UPI
-  </Button>
-</Link>
-    </div>
+    // ✅ Fix — hide text labels on small screens, show only icons or abbreviate
+<div className="flex gap-1.5 items-center">
+  <Link href="/groups">
+    <Button size="sm" variant="outline" className="hidden sm:flex">Groups</Button>
+  </Link>
+  <Link href="/settle">
+    <Button size="sm" variant="outline" className="hidden sm:flex">Settle Up</Button>
+  </Link>
+  <Link href="/profile">
+    <Button size="sm" variant="outline" className="hidden sm:flex">My UPI</Button>
+  </Link>
+  <Link href="/create">
+    <Button size="sm">
+      <Plus className="h-4 w-4 sm:mr-1" />
+      <span className="hidden sm:inline">New Split</span>
+    </Button>
+  </Link>
+</div>
   </div>
 </nav>
 
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-card border border-border rounded-xl p-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Created by me</p>
-            <p className="text-2xl font-bold text-primary">{mySplits.length}</p>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Member of</p>
-            <p className="text-2xl font-bold text-violet-600">{memberSplits.length}</p>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">I still owe</p>
-            <p className="text-2xl font-bold text-amber-600">
-              ₹{memberSplits
-                  .filter(s => !s.my_paid)
-                  .reduce((sum, s) => sum + (s.my_amount || 0), 0)
-                  .toLocaleString()}
-            </p>
-          </div>
-        </div>
+       // ✅ Fix
+<div className="grid grid-cols-3 gap-2 sm:gap-4">
+  <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
+    <p className="text-xs text-muted-foreground mb-1">Created</p> {/* shorter label */}
+    <p className="text-xl sm:text-2xl font-bold text-primary">{mySplits.length}</p>
+  </div>
+  <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
+    <p className="text-xs text-muted-foreground mb-1">Member</p>
+    <p className="text-xl sm:text-2xl font-bold text-violet-600">{memberSplits.length}</p>
+  </div>
+  <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
+    <p className="text-xs text-muted-foreground mb-1">I owe</p>
+    <p className="text-xl sm:text-2xl font-bold text-amber-600">
+      ₹{memberSplits.filter(s => !s.my_paid).reduce((sum, s) => sum + (s.my_amount || 0), 0).toLocaleString()}
+    </p>
+  </div>
+</div>
 
         {/* Search + filter */}
         <div className="space-y-3">
