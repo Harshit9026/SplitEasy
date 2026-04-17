@@ -150,7 +150,7 @@ const filterByDate = (splits: Split[]) => {
         SplitEasy
       </span>
     </Link>
-    // ✅ Fix — hide text labels on small screens, show only icons or abbreviate
+   
 <div className="flex gap-1.5 items-center">
   <Link href="/groups">
     <Button size="sm" variant="outline" className="hidden sm:flex">Groups</Button>
@@ -174,7 +174,7 @@ const filterByDate = (splits: Split[]) => {
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
         {/* Summary cards */}
-       // ✅ Fix
+      
 <div className="grid grid-cols-3 gap-2 sm:gap-4">
   <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
     <p className="text-xs text-muted-foreground mb-1">Created</p> {/* shorter label */}
