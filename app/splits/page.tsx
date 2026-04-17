@@ -159,6 +159,11 @@ const filterByDate = (splits: Split[]) => {
           <Plus className="h-4 w-4 mr-1" /> New Split
         </Button>
       </Link>
+      <Link href="/profile">
+  <Button size="sm" variant="outline">
+    My UPI
+  </Button>
+</Link>
     </div>
   </div>
 </nav>

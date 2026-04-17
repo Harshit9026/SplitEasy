@@ -8,12 +8,15 @@ import {
   ArrowLeft, Loader2, Plus, CheckCircle, ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
+import { QRCodeSVG } from 'qrcode.react';
+
 
 interface GroupMember {
   id: string;
   name: string;
   phone: string;
   email?: string;
+  upi_id?: string;
 }
 
 interface ExpenseMember {
@@ -73,6 +76,7 @@ export default function GroupDetailPage() {
   const [settled, setSettled] = useState<string[]>([]);
   const [showSettleUp, setShowSettleUp] = useState(false);
   const [updatingMember, setUpdatingMember] = useState<string | null>(null);
+  const [upiMap, setUpiMap] = useState<Record<string, string>>({});
 
   const loadData = async () => {
     const supabase = createClient();
@@ -89,6 +93,13 @@ export default function GroupDetailPage() {
 
     setGroupName(group.name);
     setGroupMembers(group.group_members || []);
+
+    // Build UPI map — phone → upi_id
+const upiMap: Record<string, string> = {};
+group.group_members.forEach((m: GroupMember) => {
+  if (m.upi_id) upiMap[m.phone] = m.upi_id;
+});
+setUpiMap(upiMap);
 
     const me = group.group_members?.find(
       (m: GroupMember) => m.email === user.email
@@ -228,9 +239,10 @@ export default function GroupDetailPage() {
     </div>
   );
 
+   
   return (
     <div className="min-h-screen bg-background flex flex-col">
-
+      
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="max-w-2xl mx-auto px-4 h-16 flex items-center gap-3">
@@ -292,7 +304,6 @@ export default function GroupDetailPage() {
               const progress = totalCount ? (paidCount / totalCount) * 100 : 0;
               const isFullyPaid = progress === 100;
 
-              // My member row
               const myRow = members.find(m => m.member_phone === myPhone);
               const iPaid = expense.paid_by_phone === myPhone;
 
@@ -342,40 +353,65 @@ export default function GroupDetailPage() {
                     </p>
                   </div>
 
-                  {/* My action */}
-                  {!isFullyPaid && (
-                    <div className="flex items-center justify-between pt-1">
-                      {myRow && !myRow.paid && !iPaid ? (
-                        <div className="flex items-center justify-between w-full">
-                          <p className="text-sm text-amber-600">
-                            You owe ₹{myRow.amount}
-                          </p>
-                          <button
-                            onClick={() => handleMarkPaid(expense.id, myRow.id)}
-                            disabled={updatingMember === myRow.id}
-                            className="bg-blue-50 text-blue-600 font-medium text-sm px-5 py-2 rounded-full hover:bg-blue-100 transition-colors"
-                          >
-                            {updatingMember === myRow.id
-                              ? <Loader2 className="h-4 w-4 animate-spin" />
-                              : 'Mark paid'
-                            }
-                          </button>
+                  {/* Action area */}
+                  {!isFullyPaid ? (
+                    <div className="space-y-3 pt-1">
+                      {/* Show payer's QR — tap to pay directly */}
+                      {upiMap[expense.paid_by_phone] && (
+                        <div
+                          className="flex items-center gap-4 bg-muted/30 rounded-xl p-3 cursor-pointer active:scale-95 transition-transform"
+                          onClick={() => {
+                            const upiLink = `upi://pay?pa=${upiMap[expense.paid_by_phone]}&pn=${encodeURIComponent(expense.paid_by_name)}&am=${myRow?.amount || expense.total_amount}&tn=${encodeURIComponent(expense.title)}&cu=INR`;
+                            window.location.href = upiLink;
+                          }}
+                        >
+                          <div className="bg-white p-2 rounded-lg flex-shrink-0">
+                            <QRCodeSVG
+                              value={`upi://pay?pa=${upiMap[expense.paid_by_phone]}&pn=${encodeURIComponent(expense.paid_by_name)}&am=${myRow?.amount || expense.total_amount}&tn=${encodeURIComponent(expense.title)}&cu=INR`}
+                              size={64}
+                              level="H"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground">
+                              Tap QR to pay ₹{myRow?.amount || expense.total_amount}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {upiMap[expense.paid_by_phone]}
+                            </p>
+                            <p className="text-xs text-primary font-medium mt-0.5">
+                              Opens GPay / PhonePe automatically ↗
+                            </p>
+                          </div>
                         </div>
-                      ) : iPaid ? (
-                        <p className="text-xs text-muted-foreground">
-                          Waiting for {members.filter(m => !m.paid && m.member_phone !== myPhone).length} people
-                        </p>
-                      ) : myRow?.paid ? (
-                        <p className="text-xs text-green-600">You paid ✓</p>
-                      ) : null}
-                    </div>
-                  )}
+                      )}
 
-                  {isFullyPaid && (
+                      {/* Mark paid button */}
+                      {myRow && !myRow.paid && !iPaid && (
+                        <button
+                          onClick={() => handleMarkPaid(expense.id, myRow.id)}
+                          disabled={updatingMember === myRow.id}
+                          className="w-full bg-blue-50 text-blue-600 font-medium text-sm py-2.5 rounded-xl hover:bg-blue-100 transition-colors"
+                        >
+                          {updatingMember === myRow.id
+                            ? <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                            : "I've paid — mark as done"
+                          }
+                        </button>
+                      )}
+
+                      {iPaid && (
+                        <p className="text-xs text-center text-muted-foreground">
+                          Waiting for {members.filter(m => !m.paid && m.member_phone !== myPhone).length} people to pay
+                        </p>
+                      )}
+                    </div>
+                  ) : (
                     <div className="flex items-center gap-1 text-green-600 text-xs font-medium">
                       <CheckCircle className="h-3 w-3" /> All settled
                     </div>
                   )}
+
                 </div>
               );
             })
@@ -516,6 +552,35 @@ export default function GroupDetailPage() {
                         <p className="text-xs text-muted-foreground">receives</p>
                       </div>
                     </div>
+
+                    {/* QR for settlement — tap to pay */}
+                    {upiMap[s.toPhone] && !settled.includes(String(i)) && (
+                      <div
+                        className="flex items-center gap-4 bg-muted/30 rounded-xl p-3 mb-3 cursor-pointer active:scale-95 transition-transform"
+                        onClick={() => {
+                          const upiLink = `upi://pay?pa=${upiMap[s.toPhone]}&pn=${encodeURIComponent(s.toName)}&am=${s.amount}&tn=Settlement&cu=INR`;
+                          window.location.href = upiLink;
+                        }}
+                      >
+                        <div className="bg-white p-2 rounded-lg flex-shrink-0">
+                          <QRCodeSVG
+                            value={`upi://pay?pa=${upiMap[s.toPhone]}&pn=${encodeURIComponent(s.toName)}&am=${s.amount}&tn=Settlement&cu=INR`}
+                            size={64}
+                            level="H"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            Tap to pay ₹{s.amount}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{upiMap[s.toPhone]}</p>
+                          <p className="text-xs text-primary font-medium">
+                            Opens GPay / PhonePe ↗
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex gap-2">
                       {settled.includes(String(i)) ? (
                         <div className="flex items-center gap-1 text-green-600 text-sm font-medium w-full justify-center">
@@ -535,6 +600,7 @@ export default function GroupDetailPage() {
           </div>
         </div>
       )}
+
     </div>
-  );
-}
+  ); // THIS CLOSES THE RETURN STATEMENT
+} // THIS CLOSES THE COMPONENT FUNCTION
