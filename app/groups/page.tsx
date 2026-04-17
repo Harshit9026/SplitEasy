@@ -146,7 +146,8 @@ export default function GroupsPage() {
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
+      
+<div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-6">
 
         {showForm && (
           <div className="bg-card border border-primary/30 rounded-2xl p-6 space-y-5">
@@ -164,7 +165,8 @@ export default function GroupsPage() {
             <div className="space-y-3">
               <p className="text-sm font-medium text-foreground">Members</p>
               {members.map((member, index) => (
-  <div key={index} className="grid grid-cols-4 gap-2 items-center">
+
+<div key={index} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 items-center">
     <Input
       placeholder="Name"
       value={member.name}
@@ -180,21 +182,20 @@ export default function GroupsPage() {
       value={member.email}
       onChange={e => handleMemberChange(index, 'email', e.target.value)}
     />
-    <div className="flex gap-2">
-      <Input
-        placeholder="UPI ID e.g. name@upi"
-        value={member.upi_id || ''}
-        onChange={e => handleMemberChange(index, 'upi_id', e.target.value)}
-      />
-      {members.length > 1 && (
-        <button
-          onClick={() => handleRemoveMember(index)}
-          className="text-muted-foreground hover:text-red-500"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      )}
-    </div>
+    // The UPI + delete button cell
+<div className="flex gap-2 items-center col-span-1 sm:col-span-2 lg:col-span-1">
+  <Input
+    placeholder="UPI ID e.g. name@upi"
+    value={member.upi_id || ''}
+    onChange={e => handleMemberChange(index, 'upi_id', e.target.value)}
+    className="flex-1"
+  />
+  {members.length > 1 && (
+    <button onClick={() => handleRemoveMember(index)} className="text-muted-foreground hover:text-red-500 shrink-0">
+      <Trash2 className="h-4 w-4" />
+    </button>
+  )}
+</div>
   </div>
 ))}
               <Button variant="outline" className="w-full" onClick={handleAddMember}>
@@ -227,9 +228,8 @@ export default function GroupsPage() {
               <Link key={group.id} href={`/groups/${group.id}`}>
                 <div className="bg-card border border-border rounded-2xl p-5 hover:border-primary/40 transition-all cursor-pointer">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {/* Group avatar stack */}
-                      <div className="flex -space-x-2">
+                   <div className="flex items-center gap-3 min-w-0">  
+                      <div className="flex -space-x-2 shrink-0">  
                         {group.group_members?.slice(0, 4).map((m, i) => (
                           <div key={i}
                             className={`w-9 h-9 rounded-full border-2 border-background flex items-center justify-center text-white font-bold text-sm ${AVATAR_COLORS[i % AVATAR_COLORS.length]}`}>
@@ -237,8 +237,8 @@ export default function GroupsPage() {
                           </div>
                         ))}
                       </div>
-                      <div>
-                        <p className="font-semibold text-foreground">{group.name}</p>
+                      <div className="min-w-0"> 
+                        <p className="font-semibold text-foreground truncate">{group.name}</p>  
                         <p className="text-xs text-muted-foreground">
                           {group.group_members?.length || 0} members
                         </p>
