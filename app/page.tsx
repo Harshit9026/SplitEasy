@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Users, Zap, Shield } from 'lucide-react';
+import { ArrowRight, Users, Zap, QrCode, TrendingDown, MessageCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -12,9 +12,7 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       setIsSignedIn(!!user);
     };
     checkAuth();
@@ -22,36 +20,35 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      {/* Navigation */}
+
+      {/* Nav */}
       <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             SplitEasy
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {isSignedIn ? (
               <>
                 <Link href="/splits">
-                  <Button variant="ghost">My Splits</Button>
+                  <Button variant="ghost" size="sm">My Splits</Button>
                 </Link>
-                <Button
+                <Button size="sm" variant="outline"
                   onClick={async () => {
                     const supabase = createClient();
                     await supabase.auth.signOut();
                     setIsSignedIn(false);
-                  }}
-                  variant="outline"
-                >
+                  }}>
                   Sign Out
                 </Button>
               </>
             ) : (
               <>
                 <Link href="/auth">
-                  <Button variant="ghost">Sign In</Button>
+                  <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
                 <Link href="/auth">
-                  <Button>Get Started</Button>
+                  <Button size="sm">Get Started</Button>
                 </Link>
               </>
             )}
@@ -59,95 +56,124 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 sm:py-28 lg:py-36">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-            {/* Left Content */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <p className="text-sm font-semibold text-primary uppercase tracking-wider">
-                  Split Bills Instantly
-                </p>
-                <h1 className="text-5xl sm:text-6xl lg:text-5xl font-bold text-foreground">
-                  <span className="text-pretty">
-                    Split bills with friends{' '}
-                    <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
-                      instantly
-                    </span>
-                  </span>
-                </h1>
-                <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
-                  No more complicated calculations. No more awkward conversations. Just create a split, invite friends via WhatsApp, and everyone knows exactly what they owe.
-                </p>
+      {/* Hero */}
+      <section className="py-16 sm:py-24 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+            {/* Left */}
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-full">
+                🇮🇳 Made for Indian college students
               </div>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href={isSignedIn ? '/create' : '/auth'} className="w-full sm:w-auto">
+              <h1 className="text-4xl sm:text-5xl font-bold text-foreground leading-tight">
+                Split bills.{' '}
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Not friendships.
+                </span>
+              </h1>
+
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Auto fare, hostel food, trip expenses — split anything in 30 seconds.
+                Pay via GPay or PhonePe in one tap. No more awkward "bhai paisa de" messages.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link href={isSignedIn ? '/create' : '/auth'} className="flex-1 sm:flex-none">
                   <Button size="lg" className="w-full sm:w-auto">
-                    Create Your First Split
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    Start splitting free
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="#features" className="w-full sm:w-auto">
+                <Link href="#how-it-works" className="flex-1 sm:flex-none">
                   <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                    Learn More
+                    See how it works
                   </Button>
                 </Link>
               </div>
 
-              {/* Trust Badge */}
-              <div className="flex items-center gap-4 pt-4">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-sm font-bold border-2 border-background"
-                    >
-                      {i}
-                    </div>
-                  ))}
+              {/* Real stats */}
+              <div className="flex items-center gap-6 pt-2">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-primary">Free</p>
+                  <p className="text-xs text-muted-foreground">Always</p>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Trusted by 1000+ college students
+                <div className="h-8 w-px bg-border" />
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-primary">30s</p>
+                  <p className="text-xs text-muted-foreground">To create split</p>
+                </div>
+                <div className="h-8 w-px bg-border" />
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-primary">1 tap</p>
+                  <p className="text-xs text-muted-foreground">To pay via UPI</p>
                 </div>
               </div>
             </div>
 
-            {/* Right Visual */}
-            <div className="relative h-96 sm:h-full">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl blur-3xl"></div>
-              <div className="relative bg-gradient-to-br from-card to-card/90 rounded-2xl border border-border p-8 shadow-2xl">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-foreground">Pizza Night Split</h3>
-                    <span className="text-sm font-semibold text-primary">₹1500</span>
-                  </div>
-                  <div className="space-y-3">
-                    {['Rahul', 'Priya', 'Amit'].map((name, i) => (
-                      <div
-                        key={name}
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-xs font-bold">
-                            {name[0]}
-                          </div>
-                          <span className="text-sm font-medium text-foreground">
-                            {name}
-                          </span>
-                        </div>
-                        <span className="text-sm font-semibold text-foreground">
-                          ₹{500 + i * 100}
-                        </span>
+            {/* Right — app mockup */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl blur-3xl" />
+              <div className="relative bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
+
+                {/* Mock header */}
+                <div className="bg-gradient-to-r from-primary to-secondary p-4 flex items-center gap-3">
+                  <div className="flex -space-x-1">
+                    {['R', 'P', 'A', 'H'].map((l, i) => (
+                      <div key={i} className="w-7 h-7 rounded-full bg-white/30 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+                        {l}
                       </div>
                     ))}
                   </div>
-                  <div className="pt-4 border-t border-border">
-                    <Button className="w-full" size="sm">
-                      Send Payment Reminders
-                    </Button>
+                  <div>
+                    <p className="text-white font-semibold text-sm">Auto Gang</p>
+                    <p className="text-white/70 text-xs">4 members</p>
+                  </div>
+                </div>
+
+                {/* Mock expense cards */}
+                <div className="p-4 space-y-3">
+                  {[
+                    { title: 'Auto fare', amount: '₹120', paid: '3/4', who: 'Rahul paid' },
+                    { title: 'Lunch at Dominos', amount: '₹640', paid: '4/4', who: 'Priya paid' },
+                    { title: 'Evening chai', amount: '₹80', paid: '2/4', who: 'You paid' },
+                  ].map((item, i) => (
+                    <div key={i} className="border border-border rounded-xl p-3 space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-xs text-muted-foreground">{item.who}</p>
+                          <p className="text-2xl font-bold text-foreground">{item.amount}</p>
+                          <p className="text-xs text-muted-foreground">{item.title}</p>
+                        </div>
+                        {item.paid === '4/4' ? (
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                            ✓ Settled
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                            {item.paid} paid
+                          </span>
+                        )}
+                      </div>
+                      {/* Progress bar */}
+                      <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full"
+                          style={{ width: item.paid === '4/4' ? '100%' : item.paid === '3/4' ? '75%' : '50%' }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Mock settle up button */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="border border-border rounded-lg py-2 text-center text-xs font-medium text-foreground">
+                      Split expense
+                    </div>
+                    <div className="bg-primary rounded-lg py-2 text-center text-xs font-medium text-white">
+                      Settle up
+                    </div>
                   </div>
                 </div>
               </div>
@@ -156,102 +182,146 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 sm:py-28 bg-card/30 border-y border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-4 mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider">
-              Why Choose SplitEasy
-            </p>
-            <h2 className="text-4xl sm:text-5xl font-bold text-foreground">
-              Everything you need
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Designed specifically for college students who want to split bills without the drama
+      {/* How it works */}
+      <section id="how-it-works" className="py-16 sm:py-24 px-4 bg-card/30 border-y border-border">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <div className="text-center space-y-3">
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider">Simple as 1-2-3</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">How SplitEasy works</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              No signup needed for your friends. They just open the link and pay.
             </p>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
+                step: '01',
                 icon: Zap,
-                title: '30-Second Splits',
-                description:
-                  'Create a split in 30 seconds. Just add a title, amount, and friends.',
+                title: 'Create a split',
+                desc: 'Enter bill name, total amount, your UPI ID, and add your friends. Takes 30 seconds.',
+                color: 'text-violet-600 bg-violet-50',
               },
               {
-                icon: Users,
-                title: 'WhatsApp Integration',
-                description:
-                  'Automatically send payment reminders and links to friends on WhatsApp.',
+                step: '02',
+                icon: MessageCircle,
+                title: 'Share via WhatsApp',
+                desc: 'Send the split link to your group. Friends open it without logging in.',
+                color: 'text-teal-600 bg-teal-50',
               },
               {
-                icon: Shield,
-                title: 'Secure & Private',
-                description:
-                  'Your data is encrypted and only visible to people in your splits.',
+                step: '03',
+                icon: QrCode,
+                title: 'Pay in one tap',
+                desc: 'Friends tap the QR code — GPay or PhonePe opens with the exact amount pre-filled.',
+                color: 'text-orange-600 bg-orange-50',
               },
-            ].map((feature, i) => (
-              <div
-                key={i}
-                className="group p-8 rounded-xl border border-border bg-card hover:border-primary hover:bg-primary/5 transition-all duration-300"
-              >
-                <feature.icon className="h-12 w-12 text-primary mb-4 group-hover:scale-110 transition-transform" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+            ].map((item, i) => (
+              <div key={i} className="bg-card border border-border rounded-2xl p-6 space-y-4 hover:border-primary/40 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color}`}>
+                    <item.icon className="h-5 w-5" />
+                  </div>
+                  <span className="text-3xl font-bold text-muted-foreground/20">{item.step}</span>
+                </div>
+                <h3 className="font-semibold text-foreground text-lg">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 sm:py-28">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
-          <div className="space-y-4">
-            <h2 className="text-4xl sm:text-5xl font-bold text-foreground">
-              Ready to split smarter?
+      {/* Features */}
+      <section className="py-16 sm:py-24 px-4">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <div className="text-center space-y-3">
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider">Features</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+              Built for the way Indians actually split
             </h2>
-            <p className="text-xl text-muted-foreground">
-              Join 1000+ students who&apos;ve stopped fighting about bills.
-            </p>
           </div>
-          <Link href={isSignedIn ? '/create' : '/auth'} className="inline-block">
-            <Button size="lg">
-              Start Splitting Now
-              <ArrowRight className="ml-2 h-5 w-5" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { icon: '👥', title: 'Groups', desc: 'Create Auto Gang, Office Lunch — regular groups settle automatically' },
+              { icon: '⚡', title: 'Tap to Pay', desc: 'Tap QR → GPay/PhonePe opens with exact amount. No scanning needed' },
+              { icon: '🧮', title: 'Smart settle up', desc: 'Calculates minimum transactions to settle everyone in a group' },
+              { icon: '📊', title: 'Equal or custom', desc: 'Split equally or set custom amounts for each person' },
+              { icon: '🔗', title: 'No signup for friends', desc: 'Share a link — friends see and pay without creating an account' },
+              { icon: '📅', title: 'Filter by date', desc: 'Settle up for last 7 days, this month, or all time' },
+            ].map((f, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl p-5 space-y-2 hover:border-primary/40 transition-colors">
+                <p className="text-2xl">{f.icon}</p>
+                <p className="font-semibold text-foreground text-sm">{f.title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* For who */}
+      <section className="py-16 px-4 bg-card/30 border-y border-border">
+        <div className="max-w-5xl mx-auto space-y-10">
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl font-bold text-foreground">Perfect for</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { emoji: '🚗', label: 'Daily commuters', desc: 'Auto, cab fare splits' },
+              { emoji: '🏠', label: 'Hostel roommates', desc: 'Rent, groceries, bills' },
+              { emoji: '✈️', label: 'Trip groups', desc: 'Hotel, food, tickets' },
+              { emoji: '🍕', label: 'Office lunch crew', desc: 'Daily meal splits' },
+            ].map((item, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl p-4 text-center space-y-2">
+                <p className="text-3xl">{item.emoji}</p>
+                <p className="font-semibold text-foreground text-sm">{item.label}</p>
+                <p className="text-xs text-muted-foreground">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20 px-4">
+        <div className="max-w-2xl mx-auto text-center space-y-6">
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+            Stop chasing friends for money
+          </h2>
+          <p className="text-lg text-muted-foreground">
+            Free to use. No install needed. Works with all UPI apps.
+          </p>
+          <Link href={isSignedIn ? '/create' : '/auth'}>
+            <Button size="lg" className="px-8">
+              Try SplitEasy free
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
+          <p className="text-xs text-muted-foreground">
+            No credit card. No install. Just open and split.
+          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-card/30 py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-8">
-            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              SplitEasy
-            </div>
-            <div className="flex gap-8 text-sm text-muted-foreground">
-              <Link href="#" className="hover:text-foreground transition-colors">
-                Privacy
-              </Link>
-              <Link href="#" className="hover:text-foreground transition-colors">
-                Terms
-              </Link>
-              <Link href="#" className="hover:text-foreground transition-colors">
-                Contact
-              </Link>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              © 2026 SplitEasy. All rights reserved.
-            </p>
+      <footer className="border-t border-border bg-card/30 py-10 px-4">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-6">
+          <div className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            SplitEasy
+          </div>
+          <p className="text-xs text-muted-foreground text-center">
+            Made with ❤️ India · 
+          </p>
+          <div className="flex gap-6 text-sm text-muted-foreground">
+            <Link href="/auth" className="hover:text-foreground transition-colors">Login</Link>
+            <Link href="/splits" className="hover:text-foreground transition-colors">Dashboard</Link>
+            <Link href="/groups" className="hover:text-foreground transition-colors">Groups</Link>
           </div>
         </div>
       </footer>
+
     </main>
   );
 }
