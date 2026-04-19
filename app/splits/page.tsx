@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Plus, ArrowRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
-
 interface Split {
   id: string;
   title: string;
@@ -44,56 +43,49 @@ export default function SplitsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [dateFilter, setDateFilter] = useState<'all' | '7days' | 'month' | '3months'>('all');
 
+  useEffect(() => {
+    const init = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push('/auth'); return; }
+      setLoading(true);
+      const [created, member] = await Promise.all([
+        getUserSplits(),
+        getMemberSplits(),
+      ]);
+      setMySplits(created || []);
+      setMemberSplits(member || []);
+      setLoading(false);
+    };
+    init();
+  }, [router]);
 
- useEffect(() => {
-  const init = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push('/auth'); return; }
-
-    setLoading(true); 
-
-    const [created, member] = await Promise.all([
-      getUserSplits(),
-      getMemberSplits(),
-    ]);
-
-    setMySplits(created || []);
-    setMemberSplits(member || []);
-    setLoading(false);
+  const filterByDate = (splits: Split[]) => {
+    if (dateFilter === 'all') return splits;
+    const now = new Date();
+    const cutoff = new Date();
+    if (dateFilter === '7days') cutoff.setDate(now.getDate() - 7);
+    else if (dateFilter === 'month') cutoff.setMonth(now.getMonth() - 1);
+    else if (dateFilter === '3months') cutoff.setMonth(now.getMonth() - 3);
+    return splits.filter(s => new Date(s.created_at) >= cutoff);
   };
-  init();
-}, [router]); 
 
-const filterByDate = (splits: Split[]) => {
-  if (dateFilter === 'all') return splits;
-  
-  const now = new Date();
-  const cutoff = new Date();
-  
-  if (dateFilter === '7days') cutoff.setDate(now.getDate() - 7);
-  else if (dateFilter === 'month') cutoff.setMonth(now.getMonth() - 1);
-  else if (dateFilter === '3months') cutoff.setMonth(now.getMonth() - 3);
-  
-  return splits.filter(s => new Date(s.created_at) >= cutoff);
-};
-
- const filterSplits = (splits: Split[]) =>
-  filterByDate(splits).filter(s => {
-    const matchSearch = s.title.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === 'all' ? true : s.status === filter;
-    return matchSearch && matchFilter;
-  });
+  const filterSplits = (splits: Split[]) =>
+    filterByDate(splits).filter(s => {
+      const matchSearch = s.title.toLowerCase().includes(search.toLowerCase());
+      const matchFilter = filter === 'all' ? true : s.status === filter;
+      return matchSearch && matchFilter;
+    });
 
   const SplitCard = ({ split, isMember = false }: { split: Split, isMember?: boolean }) => (
     <Link href={`/splits/${split.id}`}>
-      <div className="bg-card border border-border rounded-xl px-6 py-4 hover:border-primary/40 hover:bg-muted/30 transition-all cursor-pointer flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="bg-card border border-border rounded-xl px-4 py-4 hover:border-primary/40 hover:bg-muted/30 transition-all cursor-pointer flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary flex-shrink-0">
             {split.title[0].toUpperCase()}
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-foreground truncate">{split.title}</p>
               {isMember && (
                 <span className="text-xs bg-violet-100 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full flex-shrink-0">
@@ -106,7 +98,6 @@ const filterByDate = (splits: Split[]) => {
                 day: 'numeric', month: 'short', year: 'numeric'
               })}
             </p>
-            {/* Show member's own amount + paid status */}
             {isMember && split.my_amount && (
               <p className={`text-xs font-medium mt-0.5 ${split.my_paid ? 'text-green-600' : 'text-amber-600'}`}>
                 Your share: ₹{split.my_amount.toLocaleString()} — {split.my_paid ? 'Paid ✓' : 'Pending'}
@@ -114,19 +105,19 @@ const filterByDate = (splits: Split[]) => {
             )}
           </div>
         </div>
-      
-<div className="flex items-center gap-2 flex-shrink-0">
-  <div className="flex flex-col items-end gap-1">
-    <span className={`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 ${getStatusBadge(split.status)}`}>
-      {getStatusIcon(split.status)}
-      <span className="hidden sm:inline">{split.status}</span>
-    </span>
-    <p className="text-base sm:text-lg font-bold text-primary">
-      ₹{split.total_amount.toLocaleString()}
-    </p>
-  </div>
-  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-</div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex flex-col items-end gap-1">
+            <span className={`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 ${getStatusBadge(split.status)}`}>
+              {getStatusIcon(split.status)}
+              {split.status}
+            </span>
+            <p className="text-base font-bold text-primary">
+              ₹{split.total_amount.toLocaleString()}
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+        </div>
       </div>
     </Link>
   );
@@ -143,56 +134,64 @@ const filterByDate = (splits: Split[]) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-     <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
-  <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-    <Link href="/">
-      <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-        SplitEasy
-      </span>
-    </Link>
-   
-<div className="flex gap-1.5 items-center">
-  <Link href="/groups">
-    <Button size="sm" variant="outline" className="hidden sm:flex">Groups</Button>
-  </Link>
-  <Link href="/settle">
-    <Button size="sm" variant="outline" className="hidden sm:flex">Settle Up</Button>
-  </Link>
-  <Link href="/profile">
-    <Button size="sm" variant="outline" className="hidden sm:flex">My UPI</Button>
-  </Link>
-  <Link href="/create">
-    <Button size="sm">
-      <Plus className="h-4 w-4 sm:mr-1" />
-      <span className="hidden sm:inline">New Split</span>
-    </Button>
-  </Link>
-</div>
-  </div>
-</nav>
 
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
+      {/* Nav */}
+      <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
+          <Link href="/">
+            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
+              SplitEasy
+            </span>
+          </Link>
+
+          {/* Nav buttons — always visible, compact on mobile */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <Link href="/groups">
+              <Button size="sm" variant="outline" className="px-2.5 sm:px-3 text-xs sm:text-sm">
+                Groups
+              </Button>
+            </Link>
+            <Link href="/settle">
+              <Button size="sm" variant="outline" className="px-2.5 sm:px-3 text-xs sm:text-sm">
+                Settle
+              </Button>
+            </Link>
+            <Link href="/profile">
+              <Button size="sm" variant="outline" className="px-2.5 sm:px-3 text-xs sm:text-sm">
+                UPI
+              </Button>
+            </Link>
+            <Link href="/create">
+              <Button size="sm" className="px-2.5 sm:px-4 text-xs sm:text-sm">
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Split
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
 
         {/* Summary cards */}
-      
-<div className="grid grid-cols-3 gap-2 sm:gap-4">
-  <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
-    <p className="text-xs text-muted-foreground mb-1">Created</p> {/* shorter label */}
-    <p className="text-xl sm:text-2xl font-bold text-primary">{mySplits.length}</p>
-  </div>
-  <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
-    <p className="text-xs text-muted-foreground mb-1">Member</p>
-    <p className="text-xl sm:text-2xl font-bold text-violet-600">{memberSplits.length}</p>
-  </div>
-  <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
-    <p className="text-xs text-muted-foreground mb-1">I owe</p>
-    <p className="text-xl sm:text-2xl font-bold text-amber-600">
-      ₹{memberSplits.filter(s => !s.my_paid).reduce((sum, s) => sum + (s.my_amount || 0), 0).toLocaleString()}
-    </p>
-  </div>
-</div>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Created</p>
+            <p className="text-xl sm:text-2xl font-bold text-primary">{mySplits.length}</p>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Member</p>
+            <p className="text-xl sm:text-2xl font-bold text-violet-600">{memberSplits.length}</p>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-3 sm:p-4 text-center">
+            <p className="text-xs text-muted-foreground mb-1">I owe</p>
+            <p className="text-xl sm:text-2xl font-bold text-amber-600">
+              ₹{memberSplits.filter(s => !s.my_paid).reduce((sum, s) => sum + (s.my_amount || 0), 0).toLocaleString()}
+            </p>
+          </div>
+        </div>
 
-        {/* Search + filter */}
+        {/* Search + filters */}
         <div className="space-y-3">
           <input
             type="text"
@@ -201,12 +200,12 @@ const filterByDate = (splits: Split[]) => {
             onChange={e => setSearch(e.target.value)}
             className="w-full border border-border rounded-xl px-4 py-3 bg-card text-foreground text-sm outline-none focus:ring-2 focus:ring-primary/30"
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {FILTER_OPTIONS.map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-1.5 rounded-lg text-sm border transition-colors capitalize
+                className={`px-3 py-1.5 rounded-lg text-sm border transition-colors capitalize
                   ${filter === f
                     ? 'bg-primary text-white border-primary'
                     : 'bg-card border-border text-muted-foreground hover:border-primary/50'}`}
@@ -216,24 +215,24 @@ const filterByDate = (splits: Split[]) => {
             ))}
           </div>
           <div className="flex gap-2 flex-wrap">
-  {[
-    { key: 'all', label: 'All time' },
-    { key: '7days', label: 'Last 7 days' },
-    { key: 'month', label: 'This month' },
-    { key: '3months', label: 'Last 3 months' },
-  ].map(d => (
-    <button
-      key={d.key}
-      onClick={() => setDateFilter(d.key as any)}
-      className={`px-4 py-1.5 rounded-lg text-sm border transition-colors
-        ${dateFilter === d.key
-          ? 'bg-primary text-white border-primary'
-          : 'bg-card border-border text-muted-foreground hover:border-primary/50'}`}
-    >
-      {d.label}
-    </button>
-  ))}
-</div>
+            {[
+              { key: 'all', label: 'All time' },
+              { key: '7days', label: '7 days' },
+              { key: 'month', label: 'Month' },
+              { key: '3months', label: '3 months' },
+            ].map(d => (
+              <button
+                key={d.key}
+                onClick={() => setDateFilter(d.key as any)}
+                className={`px-3 py-1.5 rounded-lg text-sm border transition-colors
+                  ${dateFilter === d.key
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-card border-border text-muted-foreground hover:border-primary/50'}`}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Empty state */}
@@ -260,7 +259,7 @@ const filterByDate = (splits: Split[]) => {
           </div>
         )}
 
-        {/* Splits I am a member of */}
+        {/* Splits I'm a member of */}
         {filteredMemberSplits.length > 0 && (
           <div className="space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">

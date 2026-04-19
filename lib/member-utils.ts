@@ -21,27 +21,31 @@ export async function getMemberSplits() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  const { data, error } = await supabase
+  // Step 1: get member rows
+  const { data: members, error } = await supabase
     .from('split_members')
-    .select(`
-      id,
-      amount,
-      paid,
-      splits (
-        id,
-        title,
-        total_amount,
-        status,
-        created_at
-      )
-    `)
+    .select('id, amount, paid, split_id')
     .eq('user_id', user.id);
 
-  if (error) return [];
-  return data?.map((m: any) => ({
-    ...m.splits,
-    my_amount: m.amount,
-    my_paid: m.paid,
-    role: 'member'
-  })) || [];
+  if (error || !members?.length) return [];
+
+  // Step 2: get splits separately
+  const splitIds = members.map(m => m.split_id);
+  const { data: splits } = await supabase
+    .from('splits')
+    .select('id, title, total_amount, status, created_at')
+    .in('id', splitIds);
+
+  if (!splits) return [];
+
+  // Step 3: join in JS
+  return members.map(m => {
+    const split = splits.find(s => s.id === m.split_id);
+    return {
+      ...split,
+      my_amount: m.amount,
+      my_paid: m.paid,
+      role: 'member',
+    };
+  }).filter(m => m.id);
 }

@@ -16,5 +16,15 @@ export function createClient() {
     }
   )
 
+  // Handle expired/invalid tokens
+  client.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
+      client = null
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth'
+      }
+    }
+  })
+
   return client
 }
