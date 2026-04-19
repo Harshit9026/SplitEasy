@@ -866,17 +866,35 @@ if (splitData.host_upi_id) setHostUpiId(splitData.host_upi_id);
       <p className="text-4xl font-bold text-primary">
         ₹{qrMember.amount.toLocaleString()}
       </p>
-      <div className="flex justify-center p-4 bg-white rounded-xl">
-        <QRCodeSVG
-          value={generateUPILink(hostUpiId, split.title, qrMember.amount)}
-          size={220}
-          level="H"
-        />
-      </div>
-      <p className="text-sm font-mono text-foreground">{hostUpiId}</p>
-      <p className="text-xs text-muted-foreground">
-        Scan with GPay, PhonePe, or Paytm — amount is pre-filled to ₹{qrMember.amount}
-      </p>
+     {/* Tap QR to open UPI directly */}
+<div
+  className="flex justify-center p-4 bg-white rounded-xl cursor-pointer active:scale-95 transition-transform"
+  onClick={() => {
+    const upiLink = generateUPILink(hostUpiId, split.title, qrMember.amount);
+    window.location.href = upiLink;
+  }}
+>
+  <QRCodeSVG
+    value={generateUPILink(hostUpiId, split.title, qrMember.amount)}
+    size={220}
+    level="H"
+  />
+</div>
+<p className="text-sm font-mono text-foreground">{hostUpiId}</p>
+<p className="text-xs text-muted-foreground">
+  👆 Tap QR to open GPay / PhonePe directly
+</p>
+
+{/* Big tap to pay button */}
+<button
+  className="w-full bg-primary text-white font-semibold py-3 rounded-xl active:scale-95 transition-transform"
+  onClick={() => {
+    const upiLink = generateUPILink(hostUpiId, split.title, qrMember.amount);
+    window.location.href = upiLink;
+  }}
+>
+  Tap to Pay ₹{qrMember.amount.toLocaleString()} via UPI
+</button>
       <div className="flex gap-2">
         {/* WhatsApp send — owner only in modal too */}
         {isOwner && (
@@ -914,18 +932,35 @@ if (splitData.host_upi_id) setHostUpiId(splitData.host_upi_id);
             <p className="text-4xl font-bold text-primary">
               ₹{split.total_amount.toLocaleString()}
             </p>
-            <div className="flex justify-center p-4 bg-white rounded-xl">
-              <QRCodeSVG
-                value={generateUPILink(hostUpiId, split.title, split.total_amount)}
-                size={220}
-                level="H"
-              />
-            </div>
-            <p className="text-sm font-mono text-foreground">{hostUpiId}</p>
-            <p className="text-xs text-muted-foreground">
-              Use the per-member QR buttons instead so each person pays only their share
-            </p>
-            <Button className="w-full" onClick={() => setShowHostQR(false)}>Close</Button>
+            <div
+  className="flex justify-center p-4 bg-white rounded-xl cursor-pointer active:scale-95 transition-transform"
+  onClick={() => {
+    const upiLink = generateUPILink(hostUpiId, split.title, split.total_amount);
+    window.location.href = upiLink;
+  }}
+>
+  <QRCodeSVG
+    value={generateUPILink(hostUpiId, split.title, split.total_amount)}
+    size={220}
+    level="H"
+  />
+</div>
+<p className="text-sm font-mono text-foreground">{hostUpiId}</p>
+<p className="text-xs text-muted-foreground">
+  👆 Tap QR to open GPay / PhonePe directly
+</p>
+<button
+  className="w-full bg-primary text-white font-semibold py-3 rounded-xl active:scale-95 transition-transform"
+  onClick={() => {
+    const upiLink = generateUPILink(hostUpiId, split.title, split.total_amount);
+    window.location.href = upiLink;
+  }}
+>
+  Tap to Pay ₹{split.total_amount.toLocaleString()} via UPI
+</button>
+<Button className="w-full mt-2" variant="outline" onClick={() => setShowHostQR(false)}>
+  Close
+</Button>
           </div>
         </div>
       )}

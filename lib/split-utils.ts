@@ -153,8 +153,10 @@ export function generateUPILink(
   amount: number
 ): string {
   const encodedName = encodeURIComponent(name);
-  const encodedNote = encodeURIComponent('Payment for split bill');
-  return `upi://pay?pa=${upiId}&pn=${encodedName}&am=${amount}&tn=${encodedNote}&tr=${Date.now()}`;
+  const encodedNote = encodeURIComponent(name);
+  // Ensure amount has max 2 decimal places
+  const formattedAmount = Number(amount).toFixed(2);
+  return `upi://pay?pa=${upiId}&pn=${encodedName}&am=${formattedAmount}&tn=${encodedNote}&cu=INR`;
 }
 
 // Generate WhatsApp message
