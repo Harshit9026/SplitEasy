@@ -1,183 +1,195 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { Mail, ArrowLeft, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
-function AuthForm() {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
+export default function AuthPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Grab returnUrl from query params e.g. /auth?returnUrl=/splits/abc123
-  const returnUrl = searchParams.get('returnUrl') || '/splits';
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) router.push('/splits');
+    };
+    checkAuth();
+  }, [router]);
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendOTP = async () => {
+    if (!email.trim() || !email.includes('@')) {
+      setError('Please enter a valid email');
+      return;
+    }
     setLoading(true);
     setError('');
 
     try {
-      const supabase = createClient();
-      const { error: signInError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          // Pass returnUrl through to the callback so user lands back on the split
-          emailRedirectTo: `${window.location.origin}/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`,
-        },
+      const res = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       });
 
-      if (signInError) {
-        setError(signInError.message);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setStep('otp');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (otp.length < 6) {
+      setError('Please enter the 6-digit OTP');
+      return;
+    }
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // Use the magic link to sign in
+      if (data.link) {
+        window.location.href = data.link;
       } else {
-        setSent(true);
+        router.push('/splits');
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+
+    } catch (err: any) {
+      setError(err.message || 'Verification failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex flex-col">
-      {/* Navigation */}
-      <nav className="border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-16">
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold hover:opacity-80 transition-opacity">
-            <ArrowLeft className="h-5 w-5" />
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              SplitEasy
-            </span>
-          </Link>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm space-y-8">
+
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            SplitEasy
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Split bills. Not friendships.
+          </p>
         </div>
-      </nav>
 
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
-        <div className="w-full max-w-md">
-          <div className="space-y-8">
-            {!sent ? (
-              <>
-                {/* Header */}
-                <div className="text-center space-y-2">
-                  <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-                    Welcome Back
-                  </h1>
-                  <p className="text-muted-foreground">
-                    Sign in with your email to continue
-                  </p>
-                </div>
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
 
-                {/* Form */}
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium text-foreground">
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="you@college.edu"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
+          {step === 'email' ? (
+            <>
+              <div className="space-y-1">
+                <h2 className="font-semibold text-foreground text-lg">
+                  Enter your email
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  We'll send a 6-digit OTP to verify
+                </p>
+              </div>
 
-                  {error && (
-                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-sm text-destructive">
-                      {error}
-                    </div>
-                  )}
+              <div className="space-y-3">
+                <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={e => { setEmail(e.target.value); setError(''); }}
+                  className="text-base"
+                  onKeyDown={e => e.key === 'Enter' && handleSendOTP()}
+                  autoFocus
+                />
 
-                  <Button
-                    type="submit"
-                    disabled={loading || !email}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending Link...
-                      </>
-                    ) : (
-                      'Send Magic Link'
-                    )}
-                  </Button>
-                </form>
-              </>
-            ) : (
-              <>
-                {/* Success State */}
-                <div className="text-center space-y-4">
-                  <div className="flex justify-center">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center">
-                      <Mail className="h-8 w-8 text-primary" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-foreground">
-                      Check your email
-                    </h2>
-                    <p className="text-muted-foreground">
-                      We&apos;ve sent a magic link to{' '}
-                      <span className="font-semibold text-foreground">{email}</span>
-                    </p>
-                  </div>
-                  <p className="text-sm text-muted-foreground pt-4">
-                    Click the link in your email to sign in. The link expires in 24 hours.
-                  </p>
-                </div>
+                {error && <p className="text-sm text-red-500">{error}</p>}
 
                 <Button
-                  onClick={() => {
-                    setSent(false);
-                    setEmail('');
-                  }}
-                  variant="outline"
-                  className="w-full"
+                  className="w-full h-12 text-base font-semibold"
+                  onClick={handleSendOTP}
+                  disabled={loading}
                 >
-                  Try Another Email
+                  {loading
+                    ? <Loader2 className="h-5 w-5 animate-spin" />
+                    : 'Send OTP'
+                  }
                 </Button>
-              </>
-            )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <h2 className="font-semibold text-foreground text-lg">
+                  Enter OTP
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Sent to {email}
+                  <button
+                    onClick={() => { setStep('email'); setError(''); setOtp(''); }}
+                    className="text-primary ml-2 underline text-xs"
+                  >
+                    Change
+                  </button>
+                </p>
+              </div>
 
-            {/* Footer */}
-            <p className="text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
-              <span className="text-primary font-semibold">
-                One-click signup with the magic link above
-              </span>
-            </p>
-          </div>
+              <div className="space-y-3">
+                <Input
+                  type="number"
+                  placeholder="Enter 6-digit OTP"
+                  value={otp}
+                  onChange={e => { setOtp(e.target.value.slice(0, 6)); setError(''); }}
+                  maxLength={6}
+                  className="text-2xl font-bold tracking-widest text-center h-14"
+                  onKeyDown={e => e.key === 'Enter' && handleVerifyOTP()}
+                  autoFocus
+                />
+
+                {error && <p className="text-sm text-red-500">{error}</p>}
+
+                <Button
+                  className="w-full h-12 text-base font-semibold"
+                  onClick={handleVerifyOTP}
+                  disabled={loading || otp.length < 6}
+                >
+                  {loading
+                    ? <Loader2 className="h-5 w-5 animate-spin" />
+                    : 'Verify OTP'
+                  }
+                </Button>
+
+                <button
+                  onClick={() => { setStep('email'); setOtp(''); setError(''); }}
+                  className="w-full text-sm text-muted-foreground hover:text-primary transition-colors text-center"
+                >
+                  Didn't receive OTP? Resend
+                </button>
+              </div>
+            </>
+          )}
         </div>
+
+        <p className="text-center text-xs text-muted-foreground">
+          By continuing you agree to our Terms of Service
+        </p>
       </div>
     </div>
-  );
-}
-
-export default function AuthPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-primary animate-spin" />
-      </div>
-    }>
-      <AuthForm />
-    </Suspense>
   );
 }

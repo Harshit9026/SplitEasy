@@ -11,12 +11,6 @@ export const metadata: Metadata = {
   title: 'SplitEasy',
   description: 'Created By Harshit Shukla',
   generator: '',
-    // icon: [
-    //   { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-    //   { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-    //   { url: '/icon.svg', type: 'image/svg+xml' },
-    // ],
-    // apple: '',
     icons: {
     icon: [
       { url: "/spliteasy.png", sizes: "32x32", type: "image/png" },
