@@ -69,24 +69,70 @@ function SettleUpContent() {
       else if (dateFilter === 'month') { cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - 1); }
       else if (dateFilter === '3months') { cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - 3); }
 
-      let splitsQuery = supabase
-        .from('splits')
-        .select(`
-          id, title, total_amount, created_by, upi_id, host_upi_id, created_at,
-          split_members ( id, phone_number, amount, paid )
-        `);
+      // let splitsQuery = supabase
+      //   .from('splits')
+      //   .select(`
+      //     id, title, total_amount, created_by, upi_id, host_upi_id, created_at,
+      //     split_members ( id, phone_number, amount, paid )
+      //   `);
 
-      if (cutoff) splitsQuery = splitsQuery.gte('created_at', cutoff.toISOString());
+      // if (cutoff) splitsQuery = splitsQuery.gte('created_at', cutoff.toISOString());
 
-      const { data: allSplits } = await splitsQuery;
-      if (!allSplits) { setLoading(false); return; }
+      // const { data: allSplits } = await splitsQuery;
+      // if (!allSplits) { setLoading(false); return; }
 
-      const relevantSplits = groupId
-        ? allSplits.filter(split => {
-            const phones = split.split_members?.map((m: any) => m.phone_number) || [];
-            return phones.some((p: string) => memberPhones.includes(p));
-          })
-        : allSplits;
+      // const relevantSplits = groupId
+      //   ? allSplits.filter(split => {
+      //       const phones = split.split_members?.map((m: any) => m.phone_number) || [];
+      //       return phones.some((p: string) => memberPhones.includes(p));
+      //     })
+      //   : allSplits;
+
+      // Fetch only splits created by current user
+let createdQuery = supabase
+  .from('splits')
+  .select(`
+    id, title, total_amount, created_by, upi_id, host_upi_id, created_at,
+    split_members ( id, phone_number, amount, paid )
+  `)
+  .eq('created_by', user.id); // ← only current user's splits
+
+if (cutoff) createdQuery = createdQuery.gte('created_at', cutoff.toISOString());
+const { data: createdSplits } = await createdQuery;
+
+// Fetch splits where user is a member
+const { data: memberRows } = await supabase
+  .from('split_members')
+  .select(`
+    splits (
+      id, title, total_amount, created_by, upi_id, host_upi_id, created_at,
+      split_members ( id, phone_number, amount, paid )
+    )
+  `)
+  .eq('user_id', user.id);
+
+const memberSplits = memberRows
+  ?.map((m: any) => m.splits)
+  .filter(Boolean) || [];
+
+// Combine and deduplicate
+const combined = [
+  ...(createdSplits || []),
+  ...memberSplits,
+];
+
+const allSplits = combined.filter(
+  (s, i, arr) => s && arr.findIndex((x: any) => x?.id === s?.id) === i
+);
+
+if (!allSplits.length) { setLoading(false); return; }
+
+const relevantSplits = groupId
+  ? allSplits.filter((split: any) => {
+      const phones = split.split_members?.map((m: any) => m.phone_number) || [];
+      return phones.some((p: string) => memberPhones.includes(p));
+    })
+  : allSplits;
 
       const netMap: Record<string, { net: number; upiId: string; name: string }> = {};
 
