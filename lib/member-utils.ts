@@ -1,13 +1,10 @@
 import { createClient } from './supabase/client';
 
-// Call this right after login — links the user to any splits
-// they were added to via phone number
 export async function claimMemberships(phoneNumber: string) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  // Link all split_members rows with this phone to this user account
   await supabase
     .from('split_members')
     .update({ user_id: user.id })
@@ -15,37 +12,52 @@ export async function claimMemberships(phoneNumber: string) {
     .is('user_id', null);
 }
 
-// Get all splits where user is a member (not creator)
 export async function getMemberSplits() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
 
-  // Step 1: get member rows
-  const { data: members, error } = await supabase
-    .from('split_members')
-    .select('id, amount, paid, split_id')
-    .eq('user_id', user.id);
+    // Single query — join split_members with splits directly
+    // This works because split_members RLS allows user to see their own rows
+    // and splits RLS now allows access if user is a member
+    const { data, error } = await supabase
+      .from('split_members')
+      .select(`
+        id,
+        amount,
+        paid,
+        split_id,
+        splits (
+          id,
+          title,
+          total_amount,
+          status,
+          created_at,
+          created_by
+        )
+      `)
+      .eq('user_id', user.id);
 
-  if (error || !members?.length) return [];
+    if (error) {
+      console.error('getMemberSplits error:', error);
+      return [];
+    }
 
-  // Step 2: get splits separately
-  const splitIds = members.map(m => m.split_id);
-  const { data: splits } = await supabase
-    .from('splits')
-    .select('id, title, total_amount, status, created_at')
-    .in('id', splitIds);
+    if (!data || data.length === 0) return [];
 
-  if (!splits) return [];
+    return data
+      .filter((m: any) => m.splits) // make sure split exists
+      .filter((m: any) => m.splits.created_by !== user.id) // exclude own splits
+      .map((m: any) => ({
+        ...m.splits,
+        my_amount: m.amount,
+        my_paid: m.paid,
+        role: 'member',
+      }));
 
-  // Step 3: join in JS
-  return members.map(m => {
-    const split = splits.find(s => s.id === m.split_id);
-    return {
-      ...split,
-      my_amount: m.amount,
-      my_paid: m.paid,
-      role: 'member',
-    };
-  }).filter(m => m.id);
+  } catch (err) {
+    console.error('getMemberSplits error:', err);
+    return [];
+  }
 }
