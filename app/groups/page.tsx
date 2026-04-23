@@ -50,15 +50,18 @@ export default function GroupsPage() {
   }, [router]);
 
   const loadGroups = async () => {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('groups')
-      .select(`*, group_members(*)`)
-      .order('created_at', { ascending: false });
-    if (!error) setGroups(data || []);
-    setLoading(false);
-  };
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
+  const { data, error } = await supabase
+    .from('groups')
+    .select(`*, group_members(*)`)
+    .eq('created_by', user?.id)          // ← only groups they created
+    .order('created_at', { ascending: false });
+
+  if (!error) setGroups(data || []);
+  setLoading(false);
+};
 
   const handleAddMember = () => {
     setMembers([...members, { name: '', phone: '', email: '' , upi_id: ''}]);
@@ -182,7 +185,6 @@ export default function GroupsPage() {
       value={member.email}
       onChange={e => handleMemberChange(index, 'email', e.target.value)}
     />
-    // The UPI + delete button cell
 <div className="flex gap-2 items-center col-span-1 sm:col-span-2 lg:col-span-1">
   <Input
     placeholder="UPI ID e.g. name@upi"
