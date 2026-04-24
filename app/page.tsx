@@ -43,9 +43,9 @@ export default function Home() {
       SplitEasy
     </div>
     <div className="flex items-center gap-2">
-      <Link href="/splits">
+      {/* <Link href="/splits">
         <Button variant="ghost" size="sm" className="hidden sm:flex">My Splits</Button>
-      </Link>
+      </Link> */}
       <Link href="/groups">
         <Button variant="ghost" size="sm" className="hidden sm:flex">Groups</Button>
       </Link>
