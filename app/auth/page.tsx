@@ -19,7 +19,7 @@ export default function AuthPage() {
     const checkAuth = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) router.push('/splits');
+      if (user) router.push('/');
     };
     checkAuth();
   }, [router]);
@@ -72,7 +72,7 @@ export default function AuthPage() {
       if (data.link) {
         window.location.href = data.link;
       } else {
-        router.push('/splits');
+        router.push('/');
       }
 
     } catch (err: any) {
@@ -193,3 +193,4 @@ export default function AuthPage() {
     </div>
   );
 }
+

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
       { url: "/spliteasy.png", sizes: "180x180", type: "image/png" },
     ],
     shortcut: ["/spliteasy.png"],
-  }, // iPhone home screen
+  }, 
 
 };
 
